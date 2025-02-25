@@ -173,17 +173,18 @@ void UpdateSearchClickState() {
 void HandleSearchState() {
     UpdateSearchClickState();
 
-    int key;
-    while (largeSearchBarInfo->isPressed && (key = GetCharPressed()) > 0) {
-        printf("here: %c\n", key);
-        uint16_t len = largeSearchBarInfo->len;
-        if (len < MAX_INPUT_LENGTH - 1) {
-            largeSearchBarInfo->content[len] = (char)key;
-            largeSearchBarInfo->content[len + 1] = '\0';
+    if (!largeSearchBarInfo->isPressed) return;
+
+    int key = GetCharPressed();
+
+    if (key > 0) {
+        if ((key >= 32) && (key <= 125) && (largeSearchBarInfo->len < MAX_INPUT_LENGTH)) {
+            largeSearchBarInfo->content[largeSearchBarInfo->len] = (char)key;
+            largeSearchBarInfo->content[largeSearchBarInfo->len + 1] = '\0';
             largeSearchBarInfo->len++;
+            printf("%s\n", largeSearchBarInfo->content);
         }
     }
-    printf("%s", largeSearchBarInfo->content);
 }
 
 
@@ -201,11 +202,12 @@ int main(void) {
     Font fonts[1];
     fonts[FONT_ID_BODY_16] = LoadFontEx("resources/Quicksand-Semibold.ttf", 48, 0, 400);
     SetTextureFilter(fonts[FONT_ID_BODY_16].texture, TEXTURE_FILTER_BILINEAR);
+    //SetTargetFPS(60);    
 
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
     largeSearchBarInfo = (SearchInfo*)malloc(sizeof(SearchInfo));
-    largeSearchBarInfo->content = malloc(sizeof(char) * MAX_INPUT_LENGTH);
+    largeSearchBarInfo->content = calloc(MAX_INPUT_LENGTH, sizeof(char));
     largeSearchBarInfo->isPressed = false;
     largeSearchBarInfo->len = 0;
     largeSearchBarInfo->content[0] = '\0';
