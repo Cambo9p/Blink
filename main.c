@@ -36,7 +36,6 @@ void HandleClayErrors(Clay_ErrorData errorData) {
 
 void HandleSearchBarInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
     if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
-        printf("TEST\n");
         largeSearchBarInfo->isPressed = true;
    }
 }
@@ -169,7 +168,7 @@ void UpdateSearchClickState() {
     }
 }
 
-// handles updating the search bar visually -- TODO extract text box to module
+// handles updating the search bar visually -- TODO backspace not working, will I need a thread?
 void HandleSearchState() {
     UpdateSearchClickState();
 
@@ -182,8 +181,14 @@ void HandleSearchState() {
             largeSearchBarInfo->content[largeSearchBarInfo->len] = (char)key;
             largeSearchBarInfo->content[largeSearchBarInfo->len + 1] = '\0';
             largeSearchBarInfo->len++;
-            printf("%s\n", largeSearchBarInfo->content);
         }
+    }
+
+     key = GetKeyPressed();
+
+    if (key == KEY_BACKSPACE) {
+        if (largeSearchBarInfo->len > 0) largeSearchBarInfo->len--;
+        largeSearchBarInfo->content[largeSearchBarInfo->len] = '\0';
     }
 }
 
@@ -202,7 +207,7 @@ int main(void) {
     Font fonts[1];
     fonts[FONT_ID_BODY_16] = LoadFontEx("resources/Quicksand-Semibold.ttf", 48, 0, 400);
     SetTextureFilter(fonts[FONT_ID_BODY_16].texture, TEXTURE_FILTER_BILINEAR);
-    //SetTargetFPS(60);    
+    SetTargetFPS(60);    
 
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
