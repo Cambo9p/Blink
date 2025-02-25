@@ -78,7 +78,7 @@ void SearchButton() {
 }
 
 void TextBox() {
-    char* test = "tes";
+    char* test = largeSearchBarInfo->content;
     Clay_String s = ( Clay_String ) {.length = strlen(test), .chars =test};
     CLAY({
             .id = CLAY_ID("SearchBar"),
@@ -169,7 +169,7 @@ void UpdateSearchClickState() {
     }
 }
 
-// handles updating the search bar visually -- TODO OT working
+// handles updating the search bar visually -- TODO extract text box to module
 void HandleSearchState() {
     UpdateSearchClickState();
 
