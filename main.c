@@ -24,6 +24,7 @@ Clay_TextElementConfig headerTextConfig = (Clay_TextElementConfig) { .fontId = 2
 
 typedef struct {
     char* content;
+    uint16_t len;
     bool isPressed;
 } SearchInfo;
 
@@ -34,7 +35,6 @@ void HandleClayErrors(Clay_ErrorData errorData) {
 }
 
 void HandleSearchBarInteraction(Clay_ElementId elementId, Clay_PointerData pointerInfo, intptr_t userData) {
-    //SearchInfo* si = (SearchInfo*)userData;
     if (pointerInfo.state == CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
         printf("TEST\n");
         largeSearchBarInfo->isPressed = true;
@@ -158,7 +158,7 @@ void GenerateHeirarchy() {
 }
 
 // check if the user clicked out of the search bar
-void ResetSearchState() {
+void UpdateSearchClickState() {
     if (!largeSearchBarInfo->isPressed) {
         return;
     }
@@ -169,9 +169,27 @@ void ResetSearchState() {
     }
 }
 
+// handles updating the search bar visually -- TODO OT working
+void HandleSearchState() {
+    UpdateSearchClickState();
 
+    int key;
+    while (largeSearchBarInfo->isPressed && (key = GetCharPressed()) > 0) {
+        printf("here: %c\n", key);
+        uint16_t len = largeSearchBarInfo->len;
+        if (len < MAX_INPUT_LENGTH - 1) {
+            largeSearchBarInfo->content[len] = (char)key;
+            largeSearchBarInfo->content[len + 1] = '\0';
+            largeSearchBarInfo->len++;
+        }
+    }
+    printf("%s", largeSearchBarInfo->content);
+}
+
+
+// TODO: largeSearchBarInfo - populate the text box with the content
 int main(void) {
-    Clay_Raylib_Initialize(1024, 768, "Browser", FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT); // Extra parameters to this function are new since the video was published
+    Clay_Raylib_Initialize(1024, 768, "Browser", FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
 
     uint64_t clayRequiredMemory = Clay_MinMemorySize();
     Clay_Arena clayMemory = Clay_CreateArenaWithCapacityAndMemory(clayRequiredMemory, malloc(clayRequiredMemory));
@@ -189,6 +207,8 @@ int main(void) {
     largeSearchBarInfo = (SearchInfo*)malloc(sizeof(SearchInfo));
     largeSearchBarInfo->content = malloc(sizeof(char) * MAX_INPUT_LENGTH);
     largeSearchBarInfo->isPressed = false;
+    largeSearchBarInfo->len = 0;
+    largeSearchBarInfo->content[0] = '\0';
 
     while (!WindowShouldClose()) {
         Clay_SetLayoutDimensions((Clay_Dimensions) {GetScreenWidth(), GetScreenHeight()});
@@ -204,7 +224,7 @@ int main(void) {
         Clay_UpdateScrollContainers(true, (Clay_Vector2) { GetMouseX(), GetMouseY() }, GetFrameTime());
 
         Clay_BeginLayout();
-        ResetSearchState();
+        HandleSearchState();
 
         GenerateHeirarchy();
 
