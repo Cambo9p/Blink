@@ -1,0 +1,8 @@
+_deps/*
+.idea/*
+CMakeFiles/*
+cmake*
+test
+Makefile
+CPack*
+CMakeCache*

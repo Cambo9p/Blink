@@ -168,7 +168,7 @@ void UpdateSearchClickState() {
     }
 }
 
-// handles updating the search bar visually -- TODO backspace not working, will I need a thread?
+// handles updating the search bar visually -- TODO add a cursor
 void HandleSearchState() {
     UpdateSearchClickState();
 
