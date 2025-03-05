@@ -26,6 +26,8 @@ typedef struct {
     char* content;
     uint16_t len;
     bool isPressed;
+    char* cursor;
+    uint8_t counter;
 } SearchInfo;
 
 SearchInfo* largeSearchBarInfo;
@@ -77,8 +79,10 @@ void SearchButton() {
 }
 
 void TextBox() {
-    char* test = largeSearchBarInfo->content;
-    Clay_String s = ( Clay_String ) {.length = strlen(test), .chars =test};
+    char* searchBarInfo = largeSearchBarInfo->content;
+    char* cursor = largeSearchBarInfo->cursor;
+    Clay_String content = ( Clay_String ) {.length = strlen(searchBarInfo), .chars = searchBarInfo};
+    Clay_String cursorString = ( Clay_String ) {.length = strlen(cursor), .chars =cursor};
     CLAY({
             .id = CLAY_ID("SearchBar"),
             .backgroundColor = Clay_Hovered() ? COLOR_LIGHT_HOVER : COLOR_DARK_HOVER,
@@ -94,10 +98,16 @@ void TextBox() {
             CLAY({ 
                 .layout = {
                 .padding =  CLAY_PADDING_ALL(16),
-                .childGap = 16,
+                .childGap = 0,
                 }}) {
 
-                CLAY_TEXT(s,
+                CLAY_TEXT(content,
+                    CLAY_TEXT_CONFIG({
+                        .fontSize = 24,
+                        .textColor = {61, 26, 5, 255},
+                        .fontId = FONT_ID_BODY_16,
+                }));
+                CLAY_TEXT(cursorString, 
                     CLAY_TEXT_CONFIG({
                         .fontSize = 24,
                         .textColor = {61, 26, 5, 255},
@@ -148,7 +158,7 @@ void GenerateHeirarchy() {
             ) {
                 // main content on main page
                 TextBox();
-                CLAY({ .id = CLAY_IDI("Spacer", 1), .layout = { .sizing = { .height = CLAY_SIZING_FIXED(10) } } }) {}
+                CLAY({ .id = CLAY_IDI("Spacer", 1), .layout = { .sizing = { .height = CLAY_SIZING_FIXED(10) } } }) { }
                 SearchButton();
             }
 
@@ -164,12 +174,21 @@ void UpdateSearchClickState() {
 
     if(!Clay_PointerOver(Clay_GetElementId(CLAY_STRING("SearchBar"))) && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         largeSearchBarInfo->isPressed = false;
+        largeSearchBarInfo->cursor[0] = ' ';
         printf("unpressed\n");
+        return;
+    }
+
+    // handle the cursor
+    if (largeSearchBarInfo->counter % 30 == 0) {
+        largeSearchBarInfo->cursor[0] = largeSearchBarInfo->cursor[0] == '|' ? ' ' : '|';
     }
 }
 
-// handles updating the search bar visually -- TODO add a cursor
+// handles updating the search bar visually
 void HandleSearchState() {
+    largeSearchBarInfo->counter++;
+
     UpdateSearchClickState();
 
     if (!largeSearchBarInfo->isPressed) return;
@@ -192,8 +211,6 @@ void HandleSearchState() {
     }
 }
 
-
-// TODO: largeSearchBarInfo - populate the text box with the content
 int main(void) {
     Clay_Raylib_Initialize(1024, 768, "Browser", FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI | FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
 
@@ -216,6 +233,8 @@ int main(void) {
     largeSearchBarInfo->isPressed = false;
     largeSearchBarInfo->len = 0;
     largeSearchBarInfo->content[0] = '\0';
+    largeSearchBarInfo->cursor = calloc(2, sizeof(char));
+    largeSearchBarInfo->counter = 0;
 
     while (!WindowShouldClose()) {
         Clay_SetLayoutDimensions((Clay_Dimensions) {GetScreenWidth(), GetScreenHeight()});
@@ -231,6 +250,7 @@ int main(void) {
         Clay_UpdateScrollContainers(true, (Clay_Vector2) { GetMouseX(), GetMouseY() }, GetFrameTime());
 
         Clay_BeginLayout();
+
         HandleSearchState();
 
         GenerateHeirarchy();
